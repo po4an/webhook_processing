@@ -1,0 +1,5 @@
+db_pass = 'test'
+db_user = 'test'
+db_maindb = 'test'
+db_host = 'localhost'
+db_port = '6543'
