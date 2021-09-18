@@ -17,4 +17,18 @@
         <column type="timestamp without time zone" name="load_dttm" defaultValueComputed="now()"/>
         </createTable>
     </changeSet>
+    <changeSet author="GB" id="add checkpoints table">
+        <preConditions>
+            <not>
+                <tableExists tableName="checkpoints" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createTable tableName="checkpoints" schemaName="public">
+        <column type="int" name="id" autoIncrement="true">
+            <constraints primaryKey="true" nullable="false"/>
+        </column>
+        <column type="timestamp without time zone" name="date_from"/>
+        <column type="timestamp without time zone" name="date_to"/>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

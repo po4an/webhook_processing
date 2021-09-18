@@ -1,0 +1,5 @@
+db_pass = 'hqdpassword'
+db_user = 'hqduser'
+db_maindb = 'hqddb'
+db_host = 'main_db'
+db_port = '5432'

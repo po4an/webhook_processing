@@ -10,6 +10,18 @@ services:
             options:
                 max-size: 10m
                 max-file: "3"
+    main_db:
+        image: postgres
+        hostname: localhost
+        ports:
+            - 6543:5432
+        environment:
+            POSTGRES_USER: hqduser
+            POSTGRES_PASSWORD: hqdpassword
+            POSTGRES_DB: hqddb
+        volumes:
+            - postgres-test-data:/var/lib/postgresql/data
+        restart: always
 
     webserver:
         image: puckel/docker-airflow:1.10.9
@@ -34,3 +46,14 @@ services:
             interval: 30s
             timeout: 30s
             retries: 3
+    flask_server:
+        build: ./flask_server/
+        volumes:
+            - ./flask_server:/app
+        ports:
+            - 5000:5000
+        restart: always
+        command: python app.py
+
+volumes:
+    postgres-test-data:
