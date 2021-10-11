@@ -1,0 +1,10 @@
+DB_HOST='dibot.postgres.database.azure.com'
+DB_USER='grigorybzr@dibot'
+DB_PASS='Uhbifthebest500.'
+DB_PORT='5432'
+DB_MAINDB='postgres'
+TOKEN    = '1659154070:AAEN-zPAcUY-7UTX8msuLSL5_q6F5J97nAM'
+HOST     = '18.198.207.54' # Same FQDN used when generating SSL Cert
+PORT     = 8443
+CERT     = './ssl/server.crt'
+CERT_KEY = './ssl/server.key'

@@ -1,21 +1,27 @@
 from flask import Flask
 from flask import request
-from os import getenv
+import config as cfg
 import psycopg2 as pg
 
 
+# config
+db_pass = cfg.DB_PASS
+db_user = cfg.DB_USER
+db_maindb = cfg.DB_MAINDB
+db_host = cfg.DB_HOST
+db_port = cfg.DB_PORT
+cert = cfg.CERT
+cert_key = cfg.CERT_KEY
+token = cfg.TOKEN
 
 
 
+app = Flask(__name__)
+context = (cert, cert_key)
 
-db_pass = getenv('DB_PASS')
-db_user = getenv('DB_USER')
-db_maindb = getenv('DB_MAINDB')
-db_host = getenv('DB_HOST')
-db_port = getenv('DB_PORT')
 
 def add_action(value):
-    conn = pg.connect(host=cf.db_host, dbname=cf.db_maindb, user=cf.db_user, password=cf.db_pass, port=cf.db_port)
+    conn = pg.connect(host=db_host, dbname=db_maindb, user=db_user, password=db_pass, port=db_port)
     try:
         with conn:
             with conn.cursor() as cur:
@@ -23,15 +29,18 @@ def add_action(value):
     finally:
         conn.close()
 
-app = Flask(__name__)
 
-@app.route('/', methods = ["POST"])
+
+
+@app.route('/' + token, methods = ["POST", "GET"])
 def test():
-    value = str(request.json).replace("'", "`")
-    add_action(value)
-    return {"ok": True}
-#    return "hello from docker"
+    if request.method == "POST":
+        value = str(request.json).replace("'", "`")
+        add_action(value)
+        return {"ok": True}
+    else:
+        return "Hello from grigoryBzr"
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=443)
+    app.run(host='0.0.0.0', port=8443, ssl_context = context, debug=True)
