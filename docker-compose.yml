@@ -2,29 +2,12 @@ version: "3.7"
 
 services:
 
-  postgres:
-    image: postgres
-    hostname: localhost
-    container_name: postgres
-    ports:
-        - 6543:5432
-    environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: postgres
-    volumes:
-        - postgres-test-data:/var/lib/postgresql/data
-    restart: always
-
   flask:
     build: ./flask
     container_name: flask
     volumes:
       - ./flask:/app
     ports:
-      - 443:443
+      - 5050:5050
     restart: always
     command: python app.py
-
-volumes:
-    postgres-test-data:
