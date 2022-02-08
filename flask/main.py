@@ -6,6 +6,7 @@ import config
 import azure.cosmos.cosmos_client as cosmos_client
 from flask import request
 from flask import Flask
+from psycopg2 import connect
 
 
 
@@ -28,20 +29,22 @@ def parse_product_info(json_txt, **kwargs):
                     content.append({'name': name, 'cnt': cnt, 'cost': cost})
         return content
     except:
-        # отправить в бд в таблицу ошибок данный пример, чтобы потом его разобрать
-        print("error")
+        print('!!! Error in parse_product_info func !!!')
+        load_to_pg(json_txt.replace("'", "`"), 'parse_product_info')
 
 def parse_customer_info(json_txt, **kwargs):
     try:
         return json_txt['callback_query']['from']
     except:
-        print("error")
+        print('!!! Error in parse_customer_info func !!!')
+        load_to_pg(json_txt.replace("'", "`"), 'parse_customer_info')
 
 def parse_date_info(json_txt, **kwargs):
     try:
         return datetime.fromtimestamp(int(json_txt['callback_query']['message']['date'])).strftime('%d-%m-%Y %H:%M:%S')
     except:
-        print("error")
+        print('!!! Error in parse_date_info func !!!')
+        load_to_pg(json_txt.replace("'", "`"), 'parse_date_info')
 
 def parse_delivery_info(json_txt, **kwargs):
     try:
@@ -68,8 +71,8 @@ def parse_delivery_info(json_txt, **kwargs):
                     pass
         return content
     except:
-        # отправить в бд в таблицу ошибок данный пример, чтобы потом его разобрать
-        print("error")
+        print('!!! Error in parse_delivery_info func !!!')
+        load_to_pg(json_txt.replace("'", "`"), 'parse_delivery_info')
 
 def parse_bill_type_info(json_txt, **kwargs):
     try:
@@ -80,8 +83,8 @@ def parse_bill_type_info(json_txt, **kwargs):
                 tmp = block.replace("Способ оплаты:", "").replace('\n','').strip()
         return tmp
     except:
-        # отправить в бд в таблицу ошибок данный пример, чтобы потом его разобрать
-        print("error")
+        print('!!! Error in parse_bill_type_info func !!!')
+        load_to_pg(json_txt.replace("'", "`"), 'parse_bill_type_info')
 
 def parse_results_info(json_txt, **kwargs):
     try:
@@ -112,19 +115,40 @@ def parse_results_info(json_txt, **kwargs):
                             pass
         return content
     except:
-        # отправить в бд в таблицу ошибок данный пример, чтобы потом его разобрать
-        print("error")
+        print('!!! Error in parse_results_info func !!!')
+        load_to_pg(json_txt.replace("'", "`"), 'parse_results_info')
 
-def load_to_cosmos(data:dict, **kwargs):
-    HOST = config.settings['host']
-    MASTER_KEY = config.settings['master_key']
-    DATABASE_ID = config.settings['database_id']
-    CONTAINER_ID = config.settings['container_id']
+def load_to_cosmos(data, **kwargs):
+    try:
+        HOST = config.cosmos_settings['host']
+        MASTER_KEY = config.cosmos_settings['master_key']
+        DATABASE_ID = config.cosmos_settings['database_id']
+        CONTAINER_ID = config.cosmos_settings['container_id']
 
-    client = cosmos_client.CosmosClient(HOST, {'masterKey': MASTER_KEY})
-    db = client.get_database_client(DATABASE_ID)
-    container = db.get_container_client(CONTAINER_ID)
-    container.create_item(body=data)
+        client = cosmos_client.CosmosClient(HOST, {'masterKey': MASTER_KEY})
+        db = client.get_database_client(DATABASE_ID)
+        container = db.get_container_client(CONTAINER_ID)
+        container.create_item(body=data)
+    except:
+        print('!!! Error in load_to_cosmos func !!!')
+        load_to_pg(str(data), 'load_to_cosmos')
+
+def load_to_pg(data, func, **kwargs):
+    db_host = config.pg_settings['db_host']
+    db_user = config.pg_settings['db_user']
+    db_pass = config.pg_settings['db_pass']
+    db_port = config.pg_settings['db_port']
+    db_name = config.pg_settings['db_name']
+
+    conn = connect(host=db_host, dbname=db_name, user=db_user, password=db_pass, port=db_port)
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(f"insert into service.log (data, func) values('{data}', {func})")
+    except:
+        print('!!! Error in load_to_pg func !!!')
+    finally:
+        conn.close()
 
 def main_process(log, **kwargs):
     if is_target(log):
@@ -143,7 +167,8 @@ def main_process(log, **kwargs):
 
             load_to_cosmos(result)
         except:
-            pass
+            print('!!! Error in main_process func !!!')
+            load_to_pg(str(log).replace("'", "`"), 'main_process')
     else:
         pass
 
