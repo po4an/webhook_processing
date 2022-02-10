@@ -170,7 +170,7 @@ def main_process(log, **kwargs):
             print('!!! Error in main_process func !!!')
             load_to_pg(log, 'main_process')
     else:
-        pass
+        load_to_pg(log, 'tech')
 
 app = Flask(__name__)
 
