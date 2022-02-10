@@ -10,8 +10,8 @@ from psycopg2 import connect
 
 
 
-def is_target(text, **kwargs):
-    return 'Уточнение заказа' in text
+def is_target(log, **kwargs):
+    return 'Уточнение заказа' in log
 
 def parse_product_info(json_txt, **kwargs):
     try:
@@ -30,21 +30,21 @@ def parse_product_info(json_txt, **kwargs):
         return content
     except:
         print('!!! Error in parse_product_info func !!!')
-        load_to_pg(json_txt.replace("'", "`"), 'parse_product_info')
+        load_to_pg(json_txt, 'parse_product_info')
 
 def parse_customer_info(json_txt, **kwargs):
     try:
         return json_txt['callback_query']['from']
     except:
         print('!!! Error in parse_customer_info func !!!')
-        load_to_pg(json_txt.replace("'", "`"), 'parse_customer_info')
+        load_to_pg(json_txt, 'parse_customer_info')
 
 def parse_date_info(json_txt, **kwargs):
     try:
         return datetime.fromtimestamp(int(json_txt['callback_query']['message']['date'])).strftime('%d-%m-%Y %H:%M:%S')
     except:
         print('!!! Error in parse_date_info func !!!')
-        load_to_pg(json_txt.replace("'", "`"), 'parse_date_info')
+        load_to_pg(json_txt, 'parse_date_info')
 
 def parse_delivery_info(json_txt, **kwargs):
     try:
@@ -72,7 +72,7 @@ def parse_delivery_info(json_txt, **kwargs):
         return content
     except:
         print('!!! Error in parse_delivery_info func !!!')
-        load_to_pg(json_txt.replace("'", "`"), 'parse_delivery_info')
+        load_to_pg(json_txt, 'parse_delivery_info')
 
 def parse_bill_type_info(json_txt, **kwargs):
     try:
@@ -84,7 +84,7 @@ def parse_bill_type_info(json_txt, **kwargs):
         return tmp
     except:
         print('!!! Error in parse_bill_type_info func !!!')
-        load_to_pg(json_txt.replace("'", "`"), 'parse_bill_type_info')
+        load_to_pg(json_txt, 'parse_bill_type_info')
 
 def parse_results_info(json_txt, **kwargs):
     try:
@@ -116,7 +116,7 @@ def parse_results_info(json_txt, **kwargs):
         return content
     except:
         print('!!! Error in parse_results_info func !!!')
-        load_to_pg(json_txt.replace("'", "`"), 'parse_results_info')
+        load_to_pg(json_txt, 'parse_results_info')
 
 def load_to_cosmos(data, **kwargs):
     try:
@@ -131,7 +131,7 @@ def load_to_cosmos(data, **kwargs):
         container.create_item(body=data)
     except:
         print('!!! Error in load_to_cosmos func !!!')
-        load_to_pg(str(data), 'load_to_cosmos')
+        load_to_pg(data, 'load_to_cosmos')
 
 def load_to_pg(data, func, **kwargs):
     db_host = config.pg_settings['db_host']
@@ -144,7 +144,7 @@ def load_to_pg(data, func, **kwargs):
     try:
         with conn:
             with conn.cursor() as cur:
-                cur.execute(f"insert into service.log (data, func) values('{data}', {func})")
+                cur.execute(f"insert into service.log (data, func) values('{data}', '{func}')")
     except:
         print('!!! Error in load_to_pg func !!!')
     finally:
@@ -168,7 +168,7 @@ def main_process(log, **kwargs):
             load_to_cosmos(result)
         except:
             print('!!! Error in main_process func !!!')
-            load_to_pg(str(log).replace("'", "`"), 'main_process')
+            load_to_pg(log, 'main_process')
     else:
         pass
 
@@ -177,7 +177,7 @@ app = Flask(__name__)
 @app.route('/', methods = ["POST", "GET"])
 def main():
     if request.method == "POST":
-        main_process(str(request.json))
+        main_process(str(request.json).replace("'", "\""))
         return {"ok": True}
     else:
         return "Hello from grigoryBzr"
