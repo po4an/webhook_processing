@@ -41,7 +41,7 @@ def parse_customer_info(json_txt, **kwargs):
 
 def parse_date_info(json_txt, **kwargs):
     try:
-        return datetime.fromtimestamp(int(json_txt['callback_query']['message']['date'])).strftime('%d-%m-%Y %H:%M:%S')
+        return datetime.fromtimestamp(int(json_txt['callback_query']['message']['date'])).strftime('%Y-%m-%dT%H:%M:%SZ')
     except:
         print('!!! Error in parse_date_info func !!!')
         load_to_pg(json_txt, 'parse_date_info')
@@ -131,7 +131,7 @@ def load_to_cosmos(data, **kwargs):
         container.create_item(body=data)
     except:
         print('!!! Error in load_to_cosmos func !!!')
-        load_to_pg(data, 'load_to_cosmos')
+        load_to_pg(str(data).replace("'", "\""), 'load_to_cosmos')
 
 def load_to_pg(data, func, **kwargs):
     db_host = config.pg_settings['db_host']
